@@ -12,6 +12,9 @@ The app uses plain HTML, browser JavaScript, and Node.js built-in modules. It ru
 | `sample-order.json` | Holds the fictional starting input. The page fetches this file through the local server when it opens. |
 | `server.cjs` | Serves the page and sample file, checks preview requests, and builds JSON responses. |
 | `README.md` | Explains how to run, understand, and check the app. |
+| `tests/preview-cases.json` | The shared preview cases. Both the Node server and the Azure candidate must pass them. |
+| `tests/server.test.cjs` | Automated checks for the Node server: preview cases, routes, and page safety. |
+| `.github/workflows/checks.yml` | Runs all automated checks on GitHub for every push to `main` and every pull request. |
 
 The original exercise specified two application files. A third application file, `sample-order.json`, was added so the starting data has a clear, separate location. The server reads that file; it does not write order results back to it.
 
@@ -131,6 +134,22 @@ To inspect the actual requests in Edge or Chrome, right-click the page, choose *
 - **Headers:** request URL, method, and HTTP status.
 - **Payload:** the JSON text sent by the page.
 - **Response:** the JSON returned by the API.
+
+## Automated checks
+
+The same preview cases run automatically, so a change that breaks a rule is caught before it reaches `main`.
+
+| Where | How to run | What it checks |
+| --- | --- | --- |
+| This computer, Node server | `node --test tests/server.test.cjs` | The cases in `tests/preview-cases.json`, the page and sample routes, 404/405 responses, and that both pages show results with `textContent` only |
+| This computer, Azure candidate | From `azure-candidate/api`, with a Python 3.11 environment that has `requirements.txt` installed: `python -m unittest discover -s tests -v` | The same cases against `function_app.py` |
+| GitHub | Automatic on every push to `main` and every pull request. Manual: **Actions → Checks → Run workflow** | Both of the above |
+
+The Node test starts its own server on port **7181**, so a server you left running on 7071 does not block it.
+
+To add a case, add an entry to `tests/preview-cases.json` with the request `body` (as text), the expected `status`, and the expected `response`. Both test suites pick it up.
+
+The workflow only tests code. It does not deploy anything and uses no secrets.
 
 ## Editing and troubleshooting
 
