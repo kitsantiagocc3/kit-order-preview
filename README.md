@@ -1,8 +1,18 @@
 # Kit order preview
 
-A local training app for turning a fictional order into a readable preview. Enter or edit JSON, click **Preview order**, and see either the preview or an explanation of what needs fixing.
+A training app for turning a fictional order into a readable preview. Enter or edit JSON, click **Preview order**, and see either the preview or an explanation of what needs fixing.
 
-The app uses plain HTML, browser JavaScript, and Node.js built-in modules. It runs only on this computer at `http://127.0.0.1:7071`. It has no external service connections, sign-in, database, packages, or credentials. No order is saved or submitted.
+The local version uses plain HTML, browser JavaScript, and Node.js built-in modules at `http://127.0.0.1:7071`. The Azure version uses the page in `azure-candidate/public` and a Python 3.11 managed Functions API in `azure-candidate/api`.
+
+The Free Azure Static Web App is live at [kit-demo-training-dev](https://green-sea-04ba4b40f.1.azurestaticapps.net). Both versions return previews without saving or submitting orders. Use fictional data only; the hosted site and repository are public.
+
+## Documentation
+
+| Document | Use it for |
+| --- | --- |
+| [Project guidance](AGENTS.md) | Scope, runtime, API rules, safety, and contribution process. |
+| [CI/CD and Azure deployment](docs/ci-cd.md) | Hosting settings, GitHub checks, review, deployment approval, and release steps. |
+| [Verification record](docs/verification.md) | Dated evidence, historical results, and commands to repeat the checks. |
 
 ## Files and their roles
 
@@ -11,7 +21,18 @@ The app uses plain HTML, browser JavaScript, and Node.js built-in modules. It ru
 | `index.html` | Displays the page, loads the sample, sends the editable JSON to the API, and displays the response. It includes the page's CSS and browser JavaScript. |
 | `sample-order.json` | Holds the fictional starting input. The page fetches this file through the local server when it opens. |
 | `server.cjs` | Serves the page and sample file, checks preview requests, and builds JSON responses. |
-| `README.md` | Explains how to run, understand, and check the app. |
+| `azure-candidate/public/` | Contains the page and fictional sample deployed to Azure. |
+| `azure-candidate/public/staticwebapp.config.json` | Selects `python:3.11` for the managed API. |
+| `azure-candidate/api/function_app.py` | Implements `POST /api/preview` with the same preview rules in Python. |
+| `azure-candidate/api/host.json` and `requirements.txt` | Configure the Functions host and its Python dependency. |
+| `tests/preview-cases.json` | Defines ten fictional requests and their exact expected responses. |
+| `tests/server.test.cjs` | Checks the local Node routes, preview behavior, and safe page output. |
+| `azure-candidate/api/tests/test_function_app.py` | Runs the same ten cases against the Python handler. |
+| `scripts/check_live_preview.py` | Checks the hosted page, sample, and ten preview cases after deployment. |
+| `.github/workflows/azure-static-web-apps-green-sea-04ba4b40f.yml` | Runs CI and gates the existing Azure deployment on successful checks and release approval. |
+| `.github/pull_request_template.md` | Records the review and release checklist. |
+| `.gitattributes` | Keeps workflow YAML line endings consistent on Windows and Linux. |
+| `README.md`, `AGENTS.md`, and `docs/` | Explain how to run, check, change, and release the project. |
 
 The original exercise specified two application files. A third application file, `sample-order.json`, was added so the starting data has a clear, separate location. The server reads that file; it does not write order results back to it.
 
@@ -35,7 +56,7 @@ To stop the server, press **Ctrl + C** in its terminal. To restart it, run `node
 
 `127.0.0.1` means this computer. The same local server serves the page, sample data, and preview API.
 
-## What happens from start to finish
+## What happens locally from start to finish
 
 1. The browser requests `GET /`. The server reads `index.html` and sends the page back.
 2. The page runs `loadSampleOrder()`, which requests `GET /sample-order.json`.
@@ -102,35 +123,9 @@ Opening an address in the browser's address bar sends a GET request. To use the 
 
 Every successful preview response includes `mode: "training-preview"` and `submitted: false`.
 
-## Test results recorded during the exercise
+## Checking the preview
 
-These observations were shared during the training session on **2026-10-23**. The screenshot rows describe browser results, not a separate live endpoint test run.
-
-| Check | Observed result | Evidence |
-| --- | --- | --- |
-| Normal preview | The shared response contained `SO-100`, a description including the supplied account name, `training-preview`, and `submitted: false`. | Response body shared in the session. The HTTP status was not captured alongside that body. |
-| Blank account name | **200**; description `Order TRAINING-301`; `submitted: false`. | Browser screenshot with `orderNumber: "TRAINING-301"` and an empty account name. |
-| Blank order number | **400**; `Order number needed`. | Browser screenshot with an empty order number. |
-| Invalid JSON | **400**; `Invalid JSON. Check your quotes, commas, and braces.` | Browser screenshot with an empty JSON box. |
-
-The blank-number test was shown directly; a separate browser test removing the field entirely was not recorded. The original normal-case status should be recorded when completing the final evidence.
-
-Additional checks during the build passed JavaScript syntax validation and in-memory request/display checks, including sample loading and the four preview cases. Live GET requests for the page and sample file returned **200**. In-memory checks do not replace observing the actual browser requests.
-
-### How to repeat the checks
-
-1. Keep `sample-order.json` valid and make temporary error-test edits in the browser box.
-2. Use the normal example above for the full successful preview.
-3. Clear `Account_Name.name` and check the shorter description.
-4. Clear `orderNumber`, then separately remove that field, and check the **400** message.
-5. Remove the final closing brace from otherwise valid JSON and check the invalid-JSON **400** message.
-6. Restore valid input and confirm that a normal preview still succeeds.
-
-To inspect the actual requests in Edge or Chrome, right-click the page, choose **Inspect**, and open **Network** before clicking **Preview order**. Select the `preview` request:
-
-- **Headers:** request URL, method, and HTTP status.
-- **Payload:** the JSON text sent by the page.
-- **Response:** the JSON returned by the API.
+Use the normal example above, a blank account, missing/blank order numbers, and malformed JSON. For recorded results, exact commands, and browser Network instructions, see the [verification record](docs/verification.md).
 
 ## Editing and troubleshooting
 
@@ -147,14 +142,6 @@ To inspect the actual requests in Edge or Chrome, right-click the page, choose *
 
 Use only fictional input. The server reads the HTML, sample file, and incoming request; it writes HTTP responses only. The browser updates the page without writing order records or browser storage.
 
-## Azure mapping and deployment status
+## Azure and GitHub releases
 
-This app is currently a local Node.js learning server. `server.cjs` has not been converted into a deployable Azure Functions implementation.
-
-- Azure file map, runtime choice, settings, and candidate package: **pending documentation review**.
-- Next learning step: use current Microsoft documentation to propose how the page and preview handler would map to Azure Static Web Apps and an HTTP-triggered Function.
-- The local app requires no cloud connection settings or secrets.
-- Deployment approval for this app: **not recorded in this session**.
-- Azure deployment and hosted verification: **not performed**.
-
-No cloud resources, credentials, CRM connections, or deployment are needed to demonstrate the local preview.
+The deployed page and Python API run together in the Free Static Web App. Follow the [CI/CD guide](docs/ci-cd.md) for the exact build folders, required checks, Kit's review/approval, and live verification. The [project guidance](AGENTS.md) defines the working rules. A task-branch push runs checks; deployment follows a merge to `main` and Kit's deployment approval.
