@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Order preview</title>
+  <style>
+    body {
+      margin: 0;
+      background: #f3f5fa;
+      color: #18243b;
+      font: 16px/1.5 system-ui, sans-serif;
+    }
+    main {
+      max-width: 760px;
+      margin: 32px auto;
+      padding: 24px;
+      background: white;
+      border-radius: 12px;
+    }
+    h1 { margin-top: 0; }
+    label { display: block; font-weight: 600; margin-bottom: 8px; }
+    textarea {
+      box-sizing: border-box;
+      width: 100%;
+      min-height: 230px;
+      padding: 12px;
+      border: 1px solid #8a97ad;
+      border-radius: 6px;
+      font: 15px/1.5 Consolas, monospace;
+      resize: vertical;
+    }
+    button {
+      margin-top: 16px;
+      padding: 12px 20px;
+      border: 0;
+      border-radius: 6px;
+      background: #2457d6;
+      color: white;
+      font: inherit;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.6; cursor: wait; }
+    pre {
+      min-height: 80px;
+      padding: 16px;
+      border-radius: 6px;
+      background: #edf1f8;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    #status { font-weight: 600; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Order preview</h1>
+    <p>Use fictional order data. Previews are never saved or submitted.</p>
+
+    <label for="order-json">Order JSON</label>
+    <p><a href="/sample-order.json" target="_blank" rel="noopener">View sample JSON</a></p>
+    <textarea id="order-json" spellcheck="false" disabled></textarea>
+
+    <button id="preview-button" type="button" disabled>Preview order</button>
+
+    <h2>Result</h2>
+    <p id="status" role="status" aria-live="polite">Loading sample order...</p>
+    <pre id="result" aria-label="Preview result"></pre>
+  </main>
+
+  <script>
+    /*
+    Functions: loadSampleOrder, previewOrder
+    Purpose: Load sample JSON, then display the preview or error.
+    Author: Kit Nicholas Santiago
+    Date: 2026-10-23
+    Environment: Local browser
+    Trigger: Page opens; Preview order button
+    Inputs: Order JSON textarea
+    Reads: Sample JSON, textarea contents, and local API response
+    Writes: Page text only; no records or browser storage
+    Rules: Send raw JSON; display output with textContent
+    Dependencies: Browser fetch; GET /sample-order.json; POST /api/preview
+    Changes: Load the starting order from sample-order.json
+    */
+
+    const input = document.getElementById("order-json");
+    const button = document.getElementById("preview-button");
+    const status = document.getElementById("status");
+    const output = document.getElementById("result");
+
+    async function loadSampleOrder() {
+      try {
+        const response = await fetch("/sample-order.json", {
+          cache: "no-store"
+        });
+
+        if (!response.ok) {
+          throw new Error("Sample request failed: HTTP " + response.status);
+        }
+
+        const sample = await response.json();
+        input.value = JSON.stringify(sample, null, 2);
+        status.textContent = "Sample loaded. Ready to preview.";
+      } catch {
+        status.textContent = "Could not load sample-order.json.";
+        output.textContent =
+          "Check that the file contains valid JSON, restart the server, " +
+          "and refresh this page. You can also enter fictional JSON yourself.";
+      } finally {
+        input.disabled = false;
+        button.disabled = false;
+      }
+    }
+
+    async function previewOrder() {
+      button.disabled = true;
+      status.textContent = "Checking order...";
+      output.textContent = "";
+
+      try {
+        const response = await fetch("/api/preview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: input.value
+        });
+
+        const result = await response.json();
+        status.textContent =
+          "HTTP " + response.status +
+          (response.ok ? " - Preview ready" : " - Please check the input");
+        output.textContent = JSON.stringify(result, null, 2);
+      } catch {
+        status.textContent = "Could not reach the local API.";
+        output.textContent =
+          "Check that the server is running, then try again.";
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    button.addEventListener("click", previewOrder);
+    loadSampleOrder();
+  </script>
+</body>
+</html>

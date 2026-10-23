@@ -1,0 +1,16 @@
+# Local settings and environments (can hold secrets)
+local.settings.json
+.env
+.venv/
+
+# Python and Node build output
+__pycache__/
+*.py[cod]
+.python_packages/
+node_modules/
+
+# Local storage emulator and logs
+__azurite_db_*
+__blobstorage__/
+__queuestorage__/
+*.log

@@ -1,0 +1,5 @@
+api/local.settings.json
+api/.venv/
+api/.python_packages/
+**/__pycache__/
+*.py[cod]
