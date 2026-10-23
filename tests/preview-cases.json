@@ -1,0 +1,79 @@
+[
+  {
+    "name": "normal order is cleaned and described",
+    "body": "{\"id\": \"TRAINING-301\", \"orderNumber\": \" so-100 \", \"Account_Name\": {\"name\": \"Acorn Training\"}}",
+    "status": 200,
+    "response": {
+      "id": "TRAINING-301",
+      "orderNumber": "SO-100",
+      "description": "Order SO-100 - Acorn Training",
+      "mode": "training-preview",
+      "submitted": false
+    }
+  },
+  {
+    "name": "blank account name leaves out the account suffix",
+    "body": "{\"id\": \"TRAINING-301\", \"orderNumber\": \"TRAINING-301\", \"Account_Name\": {\"name\": \" \"}}",
+    "status": 200,
+    "response": {
+      "id": "TRAINING-301",
+      "orderNumber": "TRAINING-301",
+      "description": "Order TRAINING-301",
+      "mode": "training-preview",
+      "submitted": false
+    }
+  },
+  {
+    "name": "missing id is left out of the response",
+    "body": "{\"orderNumber\": \"so-7\"}",
+    "status": 200,
+    "response": {
+      "orderNumber": "SO-7",
+      "description": "Order SO-7",
+      "mode": "training-preview",
+      "submitted": false
+    }
+  },
+  {
+    "name": "blank order number is rejected",
+    "body": "{\"id\": \"TRAINING-301\", \"orderNumber\": \"   \"}",
+    "status": 400,
+    "response": { "error": "Order number needed" }
+  },
+  {
+    "name": "missing order number is rejected",
+    "body": "{\"id\": \"TRAINING-301\"}",
+    "status": 400,
+    "response": { "error": "Order number needed" }
+  },
+  {
+    "name": "non-text order number is rejected",
+    "body": "{\"orderNumber\": 100}",
+    "status": 400,
+    "response": { "error": "Order number needed" }
+  },
+  {
+    "name": "broken JSON is rejected",
+    "body": "{\"orderNumber\": \"SO-100\"",
+    "status": 400,
+    "response": { "error": "Invalid JSON. Check your quotes, commas, and braces." }
+  },
+  {
+    "name": "empty body is rejected",
+    "body": "",
+    "status": 400,
+    "response": { "error": "Invalid JSON. Check your quotes, commas, and braces." }
+  },
+  {
+    "name": "null is rejected",
+    "body": "null",
+    "status": 400,
+    "response": { "error": "Send a JSON object containing an orderNumber." }
+  },
+  {
+    "name": "array is rejected",
+    "body": "[{\"orderNumber\": \"SO-100\"}]",
+    "status": 400,
+    "response": { "error": "Send a JSON object containing an orderNumber." }
+  }
+]

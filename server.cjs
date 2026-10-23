@@ -10,7 +10,7 @@ Reads: index.html, sample-order.json, and the request body
 Writes: HTTP responses only; no files or records
 Rules: Preview only; submitted is always false
 Dependencies: Node.js built-ins: http, fs/promises, path
-Changes: Load the starting order from sample-order.json
+Changes: Load sample-order.json; allow a separate test port through PORT
 */
 
 const http = require("node:http");
@@ -18,7 +18,7 @@ const { readFile } = require("node:fs/promises");
 const path = require("node:path");
 
 const HOST = "127.0.0.1";
-const PORT = 7071;
+const PORT = Number(process.env.PORT) || 7071;
 const pagePath = path.join(__dirname, "index.html");
 const samplePath = path.join(__dirname, "sample-order.json");
 
@@ -126,7 +126,7 @@ const server = http.createServer(handleRequest);
 server.on("error", (error) => {
   console.error(
     error.code === "EADDRINUSE"
-      ? "Port 7071 is already in use. Check your other local servers."
+      ? "Port " + PORT + " is already in use. Check your other local servers."
       : "Could not start the local server: " + error.message
   );
   process.exitCode = 1;

@@ -2,18 +2,62 @@ name: Azure Static Web Apps CI/CD
 
 on:
   push:
-    branches:
-      - main
   pull_request:
-    types: [opened, synchronize, reopened, closed]
+    types: [opened, synchronize, reopened]
     branches:
       - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: order-preview-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  local-server:
+    name: Check local Node server
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Check JavaScript syntax
+        run: node --check server.cjs
+      - name: Run preview, route and page safety checks
+        run: node --test tests/server.test.cjs
+
+  azure-candidate:
+    name: Check Azure Functions candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: azure-candidate/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: azure-candidate/api/requirements.txt
+      - name: Install existing API dependency
+        run: python -m pip install -r requirements.txt
+      - name: Run the shared preview cases
+        run: python -m unittest discover -s tests -v
+
   build_and_deploy_job:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    needs: [local-server, azure-candidate]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     name: Build and Deploy Job
+    timeout-minutes: 20
+    environment:
+      name: training-release
+      url: https://green-sea-04ba4b40f.1.azurestaticapps.net
     permissions:
        id-token: write
        contents: read
@@ -45,14 +89,10 @@ jobs:
           output_location: "" # Built app content directory - optional
           github_id_token: ${{ steps.idtoken.outputs.result }}
           ###### End of Repository/Build Configurations ######
-
-  close_pull_request_job:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
-    runs-on: ubuntu-latest
-    name: Close Pull Request Job
-    steps:
-      - name: Close Pull Request
-        id: closepullrequest
-        uses: Azure/static-web-apps-deploy@v1
+      - uses: actions/setup-python@v5
         with:
-          action: "close"
+          python-version: "3.11"
+      - name: Verify live page and preview API
+        env:
+          TRAINING_SITE_URL: ${{ steps.builddeploy.outputs.static_web_app_url }}
+        run: python scripts/check_live_preview.py
