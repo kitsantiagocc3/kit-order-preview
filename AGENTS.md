@@ -1,6 +1,6 @@
 # Project guidance
 
-These rules apply to this repository. Start with [README.md](README.md), then read the relevant [CI/CD guide](docs/ci-cd.md) or [verification record](docs/verification.md).
+These rules apply to this repository. Start with [README.md](README.md), then read the relevant [Functions lab](docs/functions-lab.md), [CI/CD guide](docs/ci-cd.md), or [verification record](docs/verification.md).
 
 ## Purpose and limits
 
@@ -25,7 +25,9 @@ These rules apply to this repository. Start with [README.md](README.md), then re
 - A blank/missing account name is allowed and omits the account suffix from the description.
 - Missing, blank, or non-text order number returns **400** with `Order number needed`.
 - Malformed JSON and non-object JSON return their existing **400** responses.
-- Keep Node and Python behavior consistent using `tests/preview-cases.json` as the shared cases.
+- Keep the existing Node and Python preview behavior consistent using `tests/preview-cases.json`.
+- Python also exposes `GET /api/health` and `GET /api/hello?name=Alex`. A missing/blank hello name defaults to `trainee`; supplied names are trimmed. These learning routes are not part of the separate root Node server.
+- `tests/function-get-cases.json` defines the six GET examples shared by Python checks and hosted verification. Health reports only that this handler responded; it does not check external services.
 - Display browser output through `textContent`; never interpret order text as HTML.
 
 ## Checks
@@ -47,12 +49,14 @@ These rules apply to this repository. Start with [README.md](README.md), then re
 - Kit reviews and approves training changes for now. Only Kit currently has repository access, so external GitHub PR approvals are not required. A PR author cannot approve their own PR review.
 - Merging into `main` runs CI again, then the **training-release** environment requires Kit's deployment approval. Branch pushes, PR runs, and manual check runs do not deploy.
 - Leave merging and deployment approval to Kit unless that specific action is explicitly requested. Never bypass protections or fabricate approval.
-- When a team reviewer is agreed, confirm their GitHub account/access and update the review policy. Do not invite an unconfirmed person.
+- Keep **Kit as the sole deployment approver**. Add another reviewer or approval job only when Kit explicitly requests it; confirm the account and access then.
+- Batch related changes into one task branch/PR and one release approval. Reuse the existing workflow and run checks relevant to the change.
 
 ## Documentation and safety
 
 - Keep README as the entry point, `docs/ci-cd.md` as the setup/release guide, and `docs/verification.md` as dated evidence and repeatable checks.
-- After meaningful work, update the relevant docs with decisions, observed results, unresolved issues, and next steps. Record CI/release evidence in the PR and standing work notes.
+- Update docs only when Kit asks, or once at the end of a PR (decisions, observed results, unresolved issues, next steps). Don't update docs after every step. Record CI/release evidence in the PR description.
+- When a prompt starts with "Quick change", edit only the files named, run only the related check, skip docs, and reply briefly.
 - Distinguish local checks, pushed commits, passing GitHub runs, merged code, deployed code, and live behavior. A branch push does not establish deployment.
 - Never print, store, or request token values, passwords, connection strings, function keys, or secret settings. Do not read private settings to work around an access denial.
 - Keep environment files, `local.settings.json`, virtual environments, packages, logs, and caches out of commits. Do not copy personal or company-wide guidance into this public repository.

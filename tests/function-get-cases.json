@@ -1,0 +1,107 @@
+[
+  {
+    "name": "health returns the training service status",
+    "function": "health",
+    "path": "/api/health",
+    "status": 200,
+    "response": {
+      "status": "ok",
+      "service": "order-preview",
+      "mode": "training-preview",
+      "submitted": false
+    }
+  },
+  {
+    "name": "hello reads a supplied name",
+    "function": "hello",
+    "path": "/api/hello?name=Alex",
+    "status": 200,
+    "response": {
+      "message": "Hello, Alex!",
+      "mode": "training-preview",
+      "submitted": false
+    }
+  },
+  {
+    "name": "hello defaults when the name is missing",
+    "function": "hello",
+    "path": "/api/hello",
+    "status": 200,
+    "response": {
+      "message": "Hello, trainee!",
+      "mode": "training-preview",
+      "submitted": false
+    }
+  },
+  {
+    "name": "hello defaults when the name is empty",
+    "function": "hello",
+    "path": "/api/hello?name=",
+    "status": 200,
+    "response": {
+      "message": "Hello, trainee!",
+      "mode": "training-preview",
+      "submitted": false
+    }
+  },
+  {
+    "name": "hello defaults when the name is whitespace",
+    "function": "hello",
+    "path": "/api/hello?name=%20%20%20",
+    "status": 200,
+    "response": {
+      "message": "Hello, trainee!",
+      "mode": "training-preview",
+      "submitted": false
+    }
+  },
+  {
+    "name": "hello trims surrounding whitespace",
+    "function": "hello",
+    "path": "/api/hello?name=%20Alex%20",
+    "status": 200,
+    "response": {
+      "message": "Hello, Alex!",
+      "mode": "training-preview",
+      "submitted": false
+    }
+  },
+  {
+    "name": "lesson reads the HTTP lesson ID from the path",
+    "function": "lesson",
+    "path": "/api/lessons/http",
+    "route_params": {"lesson_id": "http"},
+    "status": 200,
+    "response": {
+      "lessonId": "http",
+      "title": "HTTP triggers",
+      "mode": "training-preview",
+      "submitted": false
+    }
+  },
+  {
+    "name": "lesson looks up a different path ID",
+    "function": "lesson",
+    "path": "/api/lessons/validation",
+    "route_params": {"lesson_id": "validation"},
+    "status": 200,
+    "response": {
+      "lessonId": "validation",
+      "title": "Request validation",
+      "mode": "training-preview",
+      "submitted": false
+    }
+  },
+  {
+    "name": "lesson returns 404 for an unknown ID",
+    "function": "lesson",
+    "path": "/api/lessons/unknown",
+    "route_params": {"lesson_id": "unknown"},
+    "status": 404,
+    "response": {
+      "error": "Lesson not found",
+      "mode": "training-preview",
+      "submitted": false
+    }
+  }
+]

@@ -1,19 +1,20 @@
 """
-Functions: json_response, preview
-Purpose: Return fictional order previews through an Azure HTTP trigger.
+Functions: json_response, health, hello, lesson, preview
+Purpose: Teach HTTP triggers and return fictional training responses.
 Author: Kit Nicholas Santiago
 Date: 2026-10-23
-Environment: Python 3.11; local Azure Functions candidate
-Trigger: POST /api/preview
-Inputs: JSON with id, orderNumber, and optional Account_Name.name
-Reads: HTTP request body only
-Writes: HTTP responses only; no files or records
+Environment: Python 3.11; local host and Static Web Apps managed API
+Trigger: GET health/hello/lessons/{lesson_id}; POST /api/preview
+Inputs: Optional name query parameter; lesson path ID; fictional preview JSON
+Reads: HTTP query/path parameters, fixed lesson titles, and request body only
+Writes: HTTP responses and fixed host-log messages only; no files or records
 Rules: Clean the order number; submitted is always false
-Dependencies: azure-functions and Python's built-in json module
-Changes: Initial Azure candidate matching the local preview rules
+Dependencies: azure-functions and Python's built-in json and logging modules
+Changes: Add HTTP lessons for status, query input, path input, and 404 responses
 """
 
 import json
+import logging
 
 import azure.functions as func
 
@@ -28,6 +29,55 @@ def json_response(data: dict, status: int) -> func.HttpResponse:
         charset="utf-8",
         headers={"Cache-Control": "no-store"},
     )
+
+
+@app.function_name(name="health")
+@app.route(route="health", methods=["GET"])
+def health(req: func.HttpRequest) -> func.HttpResponse:
+    logging.info("Training health HTTP trigger invoked")
+    return json_response({
+        "status": "ok",
+        "service": "order-preview",
+        "mode": "training-preview",
+        "submitted": False,
+    }, 200)
+
+
+@app.function_name(name="hello")
+@app.route(route="hello", methods=["GET"])
+def hello(req: func.HttpRequest) -> func.HttpResponse:
+    logging.info("Training hello HTTP trigger invoked")
+    name = (req.params.get("name") or "").strip() or "trainee"
+    return json_response({
+        "message": "Hello, " + name + "!",
+        "mode": "training-preview",
+        "submitted": False,
+    }, 200)
+
+
+@app.function_name(name="lesson")
+@app.route(route="lessons/{lesson_id}", methods=["GET"])
+def lesson(req: func.HttpRequest) -> func.HttpResponse:
+    logging.info("Training lesson HTTP trigger invoked")
+    lesson_titles = {
+        "http": "HTTP triggers",
+        "validation": "Request validation",
+    }
+    lesson_id = req.route_params.get("lesson_id", "")
+    title = lesson_titles.get(lesson_id)
+    if title is None:
+        return json_response({
+            "error": "Lesson not found",
+            "mode": "training-preview",
+            "submitted": False,
+        }, 404)
+
+    return json_response({
+        "lessonId": lesson_id,
+        "title": title,
+        "mode": "training-preview",
+        "submitted": False,
+    }, 200)
 
 
 @app.function_name(name="preview")
