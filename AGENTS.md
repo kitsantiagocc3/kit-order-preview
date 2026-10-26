@@ -8,6 +8,7 @@ These rules apply to this repository. Start with [README.md](README.md), then re
 - Return previews without saving or submitting orders. Keep successful responses at `mode: "training-preview"` and `submitted: false`.
 - The site and repository are public. Do not add customer data, credentials, company-wide notes, or files from neighboring projects.
 - CRM, databases, paid services, new cloud resources, and changes to company production resources need their own explicit scope. The current preview does not use them.
+- The separate Zoho lesson is approved only for reading one user-selected fictional Lead from the existing sandbox. It does not authorize writes, production CRM, credential-file access, or deployment. See `docs/zoho-sandbox.md`.
 
 ## Structure and runtime
 
@@ -27,6 +28,7 @@ These rules apply to this repository. Start with [README.md](README.md), then re
 - Malformed JSON and non-object JSON return their existing **400** responses.
 - Keep Node and Python behavior consistent using `tests/preview-cases.json` as the shared cases.
 - Display browser output through `textContent`; never interpret order text as HTML.
+- `GET /api/zoho/training-lead` requires platform sign-in and reads only the backend-configured fictional Lead. Return only `id`, `First_Name`, `Last_Name`, and `Company`. Never accept browser credentials or arbitrary record IDs/hosts. Keep the route access rule and handler identity check together.
 
 ## Checks
 

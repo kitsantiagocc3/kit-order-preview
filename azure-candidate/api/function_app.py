@@ -1,23 +1,46 @@
 """
-Functions: json_response, preview
-Purpose: Return fictional order previews through an Azure HTTP trigger.
+Functions: json_response, preview, training_lead
+Purpose: Return fictional order previews and read one configured sandbox lead.
 Author: Kit Nicholas Santiago
 Date: 2026-10-23
 Environment: Python 3.11; local Azure Functions candidate
-Trigger: POST /api/preview
-Inputs: JSON with id, orderNumber, and optional Account_Name.name
-Reads: HTTP request body only
-Writes: HTTP responses only; no files or records
-Rules: Clean the order number; submitted is always false
-Dependencies: azure-functions and Python's built-in json module
-Changes: Initial Azure candidate matching the local preview rules
+Trigger: POST /api/preview; GET /api/zoho/training-lead
+Inputs: Preview JSON; platform identity; backend Zoho settings
+Reads: Preview request or one configured fictional Zoho sandbox lead
+Writes: HTTP responses, OAuth refresh POST, and Zoho GET; no files or CRM record changes
+Rules: Clean the order number; signed-in CRM reads; submitted is always false
+Dependencies: azure-functions, json, and zoho_sandbox
+Changes: Add the first read-only sandbox integration
 """
 
 import json
 
 import azure.functions as func
 
+from zoho_sandbox import ZohoError, authenticated, load_settings, read_training_lead
+
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+
+
+@app.function_name(name="training_lead")
+@app.route(route="zoho/training-lead", methods=["GET"])
+def training_lead(req: func.HttpRequest) -> func.HttpResponse:
+    if not authenticated(req.headers.get("x-ms-client-principal", "")):
+        return json_response({"error": "Sign in to load the training lead."}, 401)
+    if req.params:
+        return json_response({"error": "This route reads the configured training lead."}, 400)
+    try:
+        settings = load_settings()
+        lead = read_training_lead(settings)
+    except ZohoError as error:
+        return json_response({"error": str(error)}, error.status)
+    return json_response({
+        "source": "local-simulation" if settings.simulation else "zoho-sandbox",
+        "module": "Leads",
+        "record": lead,
+        "mode": "training-preview",
+        "submitted": False,
+    }, 200)
 
 
 def json_response(data: dict, status: int) -> func.HttpResponse:

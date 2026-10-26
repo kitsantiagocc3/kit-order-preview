@@ -1,0 +1,7 @@
+simulation: zoho-sandbox-training
+routing: path
+mocks:
+  - routeKey: zoho-accounts
+    path: ../mocks/zoho-accounts/zoho-accounts.js
+  - routeKey: zoho
+    path: ../mocks/zoho-sandbox/default.js

@@ -66,28 +66,72 @@
     <h2>Result</h2>
     <p id="status" role="status" aria-live="polite">Loading sample order...</p>
     <pre id="result" aria-label="Preview result"></pre>
+
+    <section aria-labelledby="zoho-heading">
+      <h2 id="zoho-heading">Zoho sandbox lead</h2>
+      <p>Load the selected fictional lead. This does not change the CRM record.</p>
+      <button id="zoho-button" type="button">Load training lead</button>
+      <p id="zoho-status" role="status" aria-live="polite">Ready to load.</p>
+      <p id="zoho-sign-in" hidden>
+        <a href="/.auth/login/github?post_login_redirect_uri=/">Sign in with GitHub to load the lead</a>
+      </p>
+      <pre id="zoho-result" aria-label="Zoho lead result"></pre>
+    </section>
   </main>
 
   <script>
     /*
-    Functions: loadSampleOrder, previewOrder
-    Purpose: Load sample JSON, then display the preview or error.
+    Functions: loadSampleOrder, previewOrder, loadTrainingLead
+    Purpose: Display order previews and one selected fictional Zoho sandbox lead.
     Author: Kit Nicholas Santiago
     Date: 2026-10-23
-    Environment: Local browser
-    Trigger: Page opens; Preview order button
-    Inputs: Order JSON textarea
-    Reads: Sample JSON, textarea contents, and local API response
+    Environment: Browser; local Static Web Apps emulator or hosted app
+    Trigger: Page opens; Preview order or Load training lead button
+    Inputs: Order JSON textarea; platform sign-in cookie
+    Reads: Sample JSON, textarea contents, and backend API responses
     Writes: Page text only; no records or browser storage
     Rules: Send raw JSON; display output with textContent
-    Dependencies: Browser fetch; GET /sample-order.json; POST /api/preview
-    Changes: Load the starting order from sample-order.json
+    Dependencies: Browser fetch; sample, preview, and training-lead routes
+    Changes: Add a read-only sandbox lead section
     */
 
     const input = document.getElementById("order-json");
     const button = document.getElementById("preview-button");
     const status = document.getElementById("status");
     const output = document.getElementById("result");
+    const zohoButton = document.getElementById("zoho-button");
+    const zohoStatus = document.getElementById("zoho-status");
+    const zohoOutput = document.getElementById("zoho-result");
+    const zohoSignIn = document.getElementById("zoho-sign-in");
+
+    async function loadTrainingLead() {
+      zohoButton.disabled = true;
+      zohoStatus.textContent = "Loading training lead...";
+      zohoOutput.textContent = "";
+      zohoSignIn.hidden = true;
+      try {
+        const response = await fetch("/api/zoho/training-lead", {
+          cache: "no-store",
+          credentials: "same-origin"
+        });
+        if (response.status === 401) {
+          zohoStatus.textContent = "Sign in, then load the lead again.";
+          zohoSignIn.hidden = false;
+          return;
+        }
+        const lead = await response.json();
+        zohoStatus.textContent = response.ok
+          ? (lead.source === "local-simulation"
+            ? "Training lead loaded from the local simulation."
+            : "Zoho sandbox lead loaded.")
+          : "HTTP " + response.status + " - Could not load the lead";
+        zohoOutput.textContent = JSON.stringify(lead, null, 2);
+      } catch {
+        zohoStatus.textContent = "Could not reach the training-lead API. Try again.";
+      } finally {
+        zohoButton.disabled = false;
+      }
+    }
 
     async function loadSampleOrder() {
       try {
@@ -140,6 +184,7 @@
     }
 
     button.addEventListener("click", previewOrder);
+    zohoButton.addEventListener("click", loadTrainingLead);
     loadSampleOrder();
   </script>
 </body>

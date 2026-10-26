@@ -86,3 +86,33 @@ python scripts/check_live_preview.py
 ```
 
 GitHub approval and branch settings were configured as described in the [CI/CD guide](ci-cd.md). These setup checks did not change Azure resources or deploy a new application version. Review the PR checks for the current task revision before merging.
+
+## Zoho read integration, local preparation (2026-10-23)
+
+The new read route and page section are prepared on `feature/zoho-sandbox-read`.
+They have not been committed, pushed, or deployed. The hosted API's configuration
+belongs in the Static Web App's backend environment variables; the same names can
+be supplied separately to a local backend for checks. See the
+[Zoho lesson](zoho-sandbox.md) for the six setting names and request flow.
+
+| Verification | Observed result |
+| --- | --- |
+| Existing Node behavior/page checks | 16 tests passed. |
+| Python unittest discovery | 9 methods passed, including the existing ten preview subcases and the new identity/configuration boundaries. |
+| Real handler/client against Postman simulation | Eight record cases and one OAuth error-body case passed; exit 0. |
+| Running Functions host, launched with Python 3.11 | Two read requests returned 200 and only the four selected lead fields. |
+| Dependency evidence | Local simulation recorded OAuth refresh POSTs and CRM GETs. No redirect target was followed. Only synthetic credentials and records were used. |
+| Website emulator | Page/sample returned 200; sign-in form returned 200; anonymous and spoofed-principal requests were rejected with 401; existing preview returned 200. |
+| Browser script and launcher | Syntax checks passed. The launcher validates missing OAuth configuration before starting the host. |
+
+The local Functions host emitted a storage health warning because
+`AzureWebJobsStorage` was not configured; the HTTP handlers above still succeeded.
+These HTTP results do not establish the health of external storage or the Azure
+platform. No storage account or new resource was created.
+
+An authorized connector separately verified the selected sandbox and read the
+user-selected fictional lead. This is not evidence that the application's own
+OAuth settings are configured. Real application-to-sandbox OAuth, live sign-in,
+the manual browser click, and a hosted Zoho release remain unverified. No real
+credentials were read from private files or printed, and no Azure settings were
+read or changed. Local test servers were stopped after verification.

@@ -13,6 +13,7 @@ The Free Azure Static Web App is live at [kit-demo-training-dev](https://green-s
 | [Project guidance](AGENTS.md) | Scope, runtime, API rules, safety, and contribution process. |
 | [CI/CD and Azure deployment](docs/ci-cd.md) | Hosting settings, GitHub checks, review, deployment approval, and release steps. |
 | [Verification record](docs/verification.md) | Dated evidence, historical results, and commands to repeat the checks. |
+| [Read a Zoho sandbox lead](docs/zoho-sandbox.md) | Local Python-to-CRM read, backend configuration, and simulation checks. |
 
 ## Files and their roles
 
