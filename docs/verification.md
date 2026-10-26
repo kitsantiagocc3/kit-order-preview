@@ -86,3 +86,17 @@ python scripts/check_live_preview.py
 ```
 
 GitHub approval and branch settings were configured as described in the [CI/CD guide](ci-cd.md). These setup checks did not change Azure resources or deploy a new application version. Review the PR checks for the current task revision before merging.
+
+## Local HTTP functions lesson
+
+On 2026-10-23, `learn/http-functions` added Python `health` and `hello` functions and their shared GET examples. These changes are local and have not been committed, pushed, or deployed.
+
+| Check | Observed result |
+| --- | --- |
+| Python handler checks | **16 scenarios passed**: ten preview and six GET cases, across two unittest methods. |
+| Functions host discovery | Registered `health` [GET], `hello` [GET], and `preview` [POST] on local port 7182. |
+| Real host plus Static Web Apps emulator | **18 checks passed**: page, sample, ten preview requests, six GET requests. This exercised actual query parsing and routing. |
+| Wrong method | `POST /api/hello` returned **404** and did not invoke the GET-only route. |
+| Cleanup | The local services started by the check were stopped afterward. |
+
+The existing GitHub Python job discovers the new tests without another job. Hosted verification now includes the six GET cases, but those new routes still require an authorized release before running the updated checker against Azure. Follow the [Functions lab](functions-lab.md) for the hands-on steps.

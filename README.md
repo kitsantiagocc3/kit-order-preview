@@ -11,7 +11,8 @@ The Free Azure Static Web App is live at [kit-demo-training-dev](https://green-s
 | Document | Use it for |
 | --- | --- |
 | [Project guidance](AGENTS.md) | Scope, runtime, API rules, safety, and contribution process. |
-| [CI/CD and Azure deployment](docs/ci-cd.md) | Hosting settings, GitHub checks, review, deployment approval, and release steps. |
+| [Functions lab](docs/functions-lab.md) | Run and understand health, hello, and preview; add your next HTTP function. |
+| [CI/CD and Azure deployment](docs/ci-cd.md) | Managed versus separate Functions, workflow origins, the standard training plan, GitHub checks, and release approval. |
 | [Verification record](docs/verification.md) | Dated evidence, historical results, and commands to repeat the checks. |
 
 ## Files and their roles
@@ -26,9 +27,11 @@ The Free Azure Static Web App is live at [kit-demo-training-dev](https://green-s
 | `azure-candidate/api/function_app.py` | Implements `POST /api/preview` with the same preview rules in Python. |
 | `azure-candidate/api/host.json` and `requirements.txt` | Configure the Functions host and its Python dependency. |
 | `tests/preview-cases.json` | Defines ten fictional requests and their exact expected responses. |
+| `tests/function-get-cases.json` | Defines six health/hello GET requests and expected responses. |
 | `tests/server.test.cjs` | Checks the local Node routes, preview behavior, and safe page output. |
 | `azure-candidate/api/tests/test_function_app.py` | Runs the same ten cases against the Python handler. |
-| `scripts/check_live_preview.py` | Checks the hosted page, sample, and ten preview cases after deployment. |
+| `azure-candidate/api/tests/test_http_functions.py` | Checks the six health/hello examples. |
+| `scripts/check_live_preview.py` | Checks the hosted page, sample, ten preview cases, and six GET cases after deployment. |
 | `.github/workflows/azure-static-web-apps-green-sea-04ba4b40f.yml` | Runs CI and gates the existing Azure deployment on successful checks and release approval. |
 | `.github/pull_request_template.md` | Records the review and release checklist. |
 | `.gitattributes` | Keeps workflow YAML line endings consistent on Windows and Linux. |
@@ -145,3 +148,5 @@ Use only fictional input. The server reads the HTML, sample file, and incoming r
 ## Azure and GitHub releases
 
 The deployed page and Python API run together in the Free Static Web App. Follow the [CI/CD guide](docs/ci-cd.md) for the exact build folders, required checks, Kit's review/approval, and live verification. The [project guidance](AGENTS.md) defines the working rules. A task-branch push runs checks; deployment follows a merge to `main` and Kit's deployment approval.
+
+For the next local exercise, follow the [Functions lab](docs/functions-lab.md). It adds two Python HTTP functions to the same managed API. They become available on Azure after their own authorized push, merge, and deployment; the root Node server continues to serve the original preview exercise.
